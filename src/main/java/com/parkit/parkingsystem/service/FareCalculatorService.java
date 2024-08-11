@@ -2,6 +2,7 @@ package com.parkit.parkingsystem.service;
 
 import com.parkit.parkingsystem.constants.Fare;
 import com.parkit.parkingsystem.model.Ticket;
+import com.parkit.parkingsystem.constants.ParkingType;
 
 public class FareCalculatorService {
 
@@ -16,51 +17,20 @@ public class FareCalculatorService {
         //TODO: Some tests are failing here. Need to check if this logic is correct
         double duration = (outHour / 1000 / 3600) - (inHour / 1000 / 3600);
 
-        if ( discount == true) {
-	        switch (ticket.getParkingSpot().getParkingType()){
-	            case CAR: {
-	            	if ( duration < 0.5) {
-	            		ticket.setPrice(0);
-	            	}
-	            	else {
-	            		ticket.setPrice(duration * Fare.CAR_RATE_PER_HOUR * 0.95);
-	            	}
-	                break;
-	            }
-	            case BIKE: {
-	            	if ( duration < 0.5) {
-	            		ticket.setPrice(0);
-	            	}
-	            	else {
-	            		ticket.setPrice(duration * Fare.BIKE_RATE_PER_HOUR * 0.95);
-	            	}
-	                break;
-	            }
-	            default: throw new IllegalArgumentException("Unkown Parking Type");
-	        }
+        ParkingType parkingType = ticket.getParkingSpot().getParkingType();
+        double ratePerHour;
+        double priceDiscount;
+
+        if (parkingType != ParkingType.CAR && parkingType != ParkingType.BIKE ) {
+        	throw new NullPointerException("Unkown Parking Type");
         }
-	        else {
-		        switch (ticket.getParkingSpot().getParkingType()){
-	            case CAR: {
-	            	if ( duration < 0.5) {
-	            		ticket.setPrice(0);
-	            	}
-	            	else {
-	            		ticket.setPrice(duration * Fare.CAR_RATE_PER_HOUR);
-	            	}
-	                break;
-	            }
-	            case BIKE: {
-	            	if ( duration < 0.5) {
-	            		ticket.setPrice(0);
-	            	}
-	            	else {
-	            		ticket.setPrice(duration * Fare.BIKE_RATE_PER_HOUR);
-	            	}
-	                break;
-	            }
-	            default: throw new IllegalArgumentException("Unkown Parking Type");
-	        }
+
+        if ( duration < 0.5) {
+        	ticket.setPrice(0);
+        } else {
+        	ratePerHour = (parkingType == ParkingType.CAR) ? Fare.CAR_RATE_PER_HOUR : Fare.BIKE_RATE_PER_HOUR;
+        	priceDiscount = (discount) ? 0.95 : 1;
+        	ticket.setPrice(duration * ratePerHour * priceDiscount);
         }
     }
 

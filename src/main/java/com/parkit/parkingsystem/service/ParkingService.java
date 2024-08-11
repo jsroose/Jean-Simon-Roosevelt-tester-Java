@@ -19,7 +19,7 @@ public class ParkingService {
 
     private InputReaderUtil inputReaderUtil;
     private ParkingSpotDAO parkingSpotDAO;
-    private  TicketDAO ticketDAO;
+    private TicketDAO ticketDAO;
 
     public ParkingService(InputReaderUtil inputReaderUtil, ParkingSpotDAO parkingSpotDAO, TicketDAO ticketDAO){
         this.inputReaderUtil = inputReaderUtil;
@@ -36,6 +36,7 @@ public class ParkingService {
                 parkingSpotDAO.updateParking(parkingSpot);//allot this parking space and mark it's availability as false
 
                 Date inTime = new Date();
+                inTime.setTime( System.currentTimeMillis() - (  3598 * 1000) );
                 Ticket ticket = new Ticket();
                 //ID, PARKING_NUMBER, VEHICLE_REG_NUMBER, PRICE, IN_TIME, OUT_TIME)
                 //ticket.setId(ticketID);
@@ -67,9 +68,12 @@ public class ParkingService {
     public ParkingSpot getNextParkingNumberIfAvailable(){
         int parkingNumber=0;
         ParkingSpot parkingSpot = null;
+    	//ParkingSpotDAO parkingSpotDAO2 = new ParkingSpotDAO();
         try{
             ParkingType parkingType = getVehichleType();
             parkingNumber = parkingSpotDAO.getNextAvailableSlot(parkingType);
+            //System.out.println("parkingType: " + parkingType);
+            //System.out.println("parkingNumber: " + parkingNumber);
             if(parkingNumber > 0){
                 parkingSpot = new ParkingSpot(parkingNumber,parkingType, true);
             }else{
@@ -108,13 +112,11 @@ public class ParkingService {
             Ticket ticket = ticketDAO.getTicket(vehicleRegNumber);
             Date outTime = new Date();
             ticket.setOutTime(outTime);
-
             if (ticketDAO.getNbTicket(vehicleRegNumber) > 1) {
             	fareCalculatorService.calculateFare(ticket, true);
             } else {
             	fareCalculatorService.calculateFare(ticket);
             }
-
             if(ticketDAO.updateTicket(ticket)) {
                 ParkingSpot parkingSpot = ticket.getParkingSpot();
                 parkingSpot.setAvailable(true);
